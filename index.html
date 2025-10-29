@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Magical Gift Reveal</title>
+  <link rel="shortcut icon" href="./icon.png" type="image/x-icon">
+  <link rel="stylesheet" href="main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- GIFT (initial view) -->
+  <div id="cover" class="cover">
+    <div class="sparkles"></div>
+    <div class="gift-container">
+      <div class="gift" id="gift">
+        <div class="box">
+          <div class="front"></div>
+          <div class="left"></div>
+          <div class="right"></div>
+          <div class="back"></div>
+        </div>
+        <div class="lid" id="lid"></div>
+        <div class="ribbon horizontal"></div>
+        <div class="ribbon vertical"></div>
+        <div class="bow"></div>
+      </div>
+
+      <button id="openBtn" class="visually-hidden" aria-hidden="true">Open Gift</button>
+      <p class="hint">Click the gift to open 🎁</p>
+    </div>
+  </div>
+
+  <!-- MAIN APP (hidden until reveal) -->
+  <div id="drag-container" class="hidden">
+      <div id="spin-container">
+          <img src="./images/r1.png" alt="">
+          <img src="./images/r2.png" alt="">
+          <img src="./images/r3.png" alt="">
+          <img src="./images/r4.png" alt="">
+          <img src="./images/r5.jpg" alt="">
+          <img src="./images/r6.png" alt="">
+          <img src="./images/r7.png" alt="">
+          <img src="./images/r8.png" alt="">
+          <img src="./images/r9.png" alt="">
+          <img src="./images/r10.png" alt="">
+          <p style="">Happy<span style=""> Birthday</span> Rashmii</p>
+          <button class="button" onclick="confetti()"></button>
+      </div>
+      <div id="ground"></div>
+  </div>
+
+  <div id="music-container" style="display:none"></div>
+
+  <!-- Canvas for heart / fireworks -->
+  <canvas id="canvas"></canvas>
+
+  <script src='https://cdn.jsdelivr.net/npm/canvas-confetti@1/dist/confetti.browser.min.js'></script>
+  <script src="main.js"></script>
+</body>
+</html>
