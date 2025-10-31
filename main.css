@@ -236,3 +236,274 @@ p{ font-weight:600; font-size:4vw; text-align:center }
   animation: glowPulse 2s ease-in-out forwards;
 }
 
+
+/* === Balloons Floating Animation === */
+#balloon-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 20;
+}
+
+.balloon {
+  position: absolute;
+  bottom: -120px;
+  width: 40px;
+  height: 55px;
+  background: radial-gradient(circle at 35% 25%, #fff7f7, var(--balloon-color));
+  border-radius: 50% 50% 45% 55%;
+  box-shadow: inset -3px -8px 10px rgba(0,0,0,0.15);
+  animation: floatUp linear infinite;
+}
+.balloon::after {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 60px;
+  background: rgba(255,255,255,0.5);
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-110vh) rotate(8deg);
+    opacity: 0.8;
+  }
+}
+
+
+
+
+/* === Birthday Page Reveal === */
+#birthday-page {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #ffb6c1, #ff69b4, #c71585);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: white;
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 9999;
+  transition: opacity 1s ease, visibility 1s ease;
+  overflow: hidden;
+}
+#birthday-page.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* === Fix Birthday Page Alignment === */
+.birthday-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Ensure title stays centered */
+.birthday-title {
+  width: 100%;
+  text-align: center;
+}
+
+/* Keep flip-card centered horizontally */
+.flip-card {
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+}
+
+/* Buttons aligned nicely below */
+#flipBtn, .back-btn {
+  display: inline-block;
+  margin: 15px 10px 0 10px;
+}
+
+.birthday-content {
+  animation: fadeInUp 1.8s ease forwards;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(60px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.birthday-title {
+  font-family: 'Pacifico', cursive;
+  font-size: 3em;
+  color: #fff;
+  text-shadow: 0 0 25px #ffccff, 0 0 45px #ff66cc;
+  margin-bottom: 20px;
+  animation: glowPulseText 3s ease-in-out infinite;
+}
+@keyframes glowPulseText {
+  0%,100% { text-shadow: 0 0 10px #fff, 0 0 20px #ff66cc; }
+  50% { text-shadow: 0 0 25px #fff, 0 0 60px #ff99ff; }
+}
+
+.birthday-photo {
+  width: 280px;
+  height: 400px;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: 0 0 25px rgba(255,255,255,0.8);
+  border: 3px solid #fff;
+  margin: 10px 0 20px 0;
+  animation: photoFloat 5s ease-in-out infinite;
+}
+@keyframes photoFloat {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.birthday-message {
+  font-size: 1.4em;
+  line-height: 1.6em;
+  margin: 0 20px;
+  animation: typeIn 5s steps(60) 1 forwards;
+  opacity: 0;
+}
+@keyframes typeIn {
+  from { width: 0; opacity: 1; }
+  to { width: 100%; opacity: 1; }
+}
+
+.back-btn {
+  background: linear-gradient(90deg, #ff66cc, #ff99ff);
+  border: none;
+  color: white;
+  font-weight: 600;
+  font-size: 1.1em;
+  padding: 12px 30px;
+  border-radius: 30px;
+  margin-top: 25px;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(255,255,255,0.3);
+  transition: transform 0.3s ease, background 0.4s ease;
+}
+.back-btn:hover {
+  transform: scale(1.1);
+  background: linear-gradient(90deg, #ff99ff, #ff66cc);
+}
+
+/* Floating hearts background */
+#birthday-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('https://cdn.jsdelivr.net/gh/Amritesh01/assets/heart-pattern.svg');
+  opacity: 0.08;
+  animation: slowDrift 25s linear infinite;
+}
+@keyframes slowDrift {
+  from { transform: translateY(0); }
+  to { transform: translateY(-10%); }
+}
+
+
+
+/* === Flip Card Surprise (Left-Right flip version) === */
+.flip-card {
+  perspective: 1200px;
+  position: relative;
+  display: inline-block;
+}
+.flip-inner {
+  position: relative;
+  width: 300px;
+  height: 450px;
+  transform-style: preserve-3d;
+  transition: transform 1s ease;
+}
+.flip-card.flipped .flip-inner {
+  transform: rotateY(180deg); /* ⬅ changed from rotateX to rotateY */
+}
+
+/* front + back faces */
+.flip-front, .flip-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.flip-back {
+  transform: rotateY(180deg); /* ⬅ horizontal flip */
+}
+
+/* adjust images inside flip */
+.flip-card img {
+  width: 260px;
+  height: 400px;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: 0 0 25px rgba(255,255,255,0.8);
+  border: 3px solid #fff;
+  margin-bottom: 14px;
+  animation: photoFloat 5s ease-in-out infinite;
+}
+
+/* messages */
+.flip-card .birthday-message {
+  font-size: 1.2em;
+  line-height: 1.4em;
+  color: #fff;
+  text-align: center;
+  margin: 0 10px;
+}
+
+/* Flip hint button */
+.flip-btn {
+  margin-top: 40px;
+  padding: 10px 24px;
+  font-size: 1.1em;
+  background: linear-gradient(90deg,#ff66cc,#ff99ff);
+  border: none;
+  border-radius: 30px;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(255,255,255,0.3);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .6s ease, visibility .6s ease;
+}
+.flip-btn.show {
+  opacity: 1;
+  visibility: visible;
+}
+.flip-btn:active {
+  transform: scale(0.96);
+}
+
+/* Responsive scaling */
+@media (max-width: 650px) {
+  .flip-inner { width: 220px; height: 300px; }
+  .flip-card img { width: 200px; height: 200px; }
+  .flip-card .birthday-message { font-size: 1em; }
+}
+
