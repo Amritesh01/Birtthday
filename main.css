@@ -507,3 +507,68 @@ p{ font-weight:600; font-size:4vw; text-align:center }
   .flip-card .birthday-message { font-size: 1em; }
 }
 
+
+
+/* === MOBILE RESPONSIVENESS === */
+@media (max-width: 768px) {
+  .birthday-title {
+    font-size: 2.2em;
+    margin-bottom: 12px;
+  }
+
+  .flip-card {
+    transform: scale(0.9);
+  }
+
+  .flip-inner {
+    width: 220px;
+    height: 300px;
+  }
+
+  .flip-card img {
+    width: 200px;
+    height: 260px; /* slightly taller for better view */
+  }
+
+  .birthday-message {
+    font-size: 1em;
+    line-height: 1.5em;
+    margin: 0 8px;
+  }
+
+  #flipBtn, .back-btn {
+    font-size: 0.95em;
+    padding: 10px 18px;
+    margin: 12px 4px 0 4px; /* smaller gap for phones */
+  }
+}
+
+/* === EXTRA SMALL DEVICES (Phones under 480px) === */
+@media (max-width: 480px) {
+  .birthday-title {
+    font-size: 1.8em;
+    line-height: 1.3em;
+  }
+
+  .flip-inner {
+    width: 180px;
+    height: 250px;
+  }
+
+  .flip-card img {
+    width: 170px;
+    height: 220px;
+  }
+
+  .birthday-message {
+    font-size: 0.9em;
+  }
+
+  #flipBtn, .back-btn {
+    width: 80%;
+    margin: 10px auto;
+    display: block;
+  }
+}
+
+
