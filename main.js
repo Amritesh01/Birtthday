@@ -295,4 +295,80 @@ document.addEventListener("DOMContentLoaded", function () {
   window.confettiClick = function () {
     if (window.confetti) window.confetti({ particleCount: 80, spread: 120, origin: { y: 0.6 } });
   };
+
+
+  // === 🎈 BALLOON EFFECT ===
+function startBalloons() {
+  const container = document.getElementById('balloon-container');
+  const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#1dd1a1', '#f368e0', '#ff9ff3'];
+  let balloonCount = 20; // number of balloons
+
+  for (let i = 0; i < balloonCount; i++) {
+    let balloon = document.createElement('div');
+    balloon.classList.add('balloon');
+    balloon.style.setProperty('--balloon-color', colors[Math.floor(Math.random() * colors.length)]);
+    balloon.style.left = Math.random() * 100 + '%';
+    balloon.style.animationDuration = 8 + Math.random() * 4 + 's';
+    balloon.style.animationDelay = Math.random() * 5 + 's';
+    container.appendChild(balloon);
+  }
+}
+startBalloons();
+
 });
+
+// === Birthday Page Trigger ===
+document.addEventListener('DOMContentLoaded', () => {
+  const birthdayPage = document.getElementById('birthday-page');
+  const backBtn = document.getElementById('backBtn');
+  const button = document.querySelector('.button'); // your existing message button
+
+  if (button) {
+    button.addEventListener('click', () => {
+      document.body.style.overflow = 'hidden';
+      birthdayPage.classList.add('active');
+    });
+  }
+
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      birthdayPage.classList.remove('active');
+      document.body.style.overflow = 'hidden';
+    });
+  }
+});
+
+
+
+// === Flip Card Logic ===
+document.addEventListener('DOMContentLoaded', () => {
+  const birthdayPage = document.getElementById('birthday-page');
+  const flipCard = document.querySelector('.flip-card');
+  const flipBtn = document.getElementById('flipBtn');
+
+  if (!birthdayPage || !flipCard || !flipBtn) return;
+
+  // show flip button 10 seconds after birthday page appears
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach(m => {
+      if (m.attributeName === 'class' && birthdayPage.classList.contains('active')) {
+        setTimeout(() => flipBtn.classList.add('show'), 10000);
+      }
+    });
+  });
+  observer.observe(birthdayPage, { attributes: true });
+
+  // flip on image or button tap
+  const doFlip = () => flipCard.classList.toggle('flipped');
+
+  flipBtn.addEventListener('click', doFlip);
+  flipCard.addEventListener('click', doFlip);
+  flipCard.addEventListener('touchstart', doFlip); // mobile tap
+});
+
+
+
+
+
+
+
