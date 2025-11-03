@@ -211,18 +211,46 @@ document.addEventListener("DOMContentLoaded", function () {
       } catch (err) { console.warn('audio error', err); }
 
       setTimeout(function () {
-        cover.classList.add('fade-out');
-        odrag.classList.remove('hidden');
+  cover.classList.add('fade-out');
 
-        // ensure odrag is full area for pointer capture (but do not alter layout dramatically)
-        odrag.style.position = odrag.style.position || 'relative';
-        odrag.style.perspective = odrag.style.perspective || '1200px';
-        odrag.style.transformStyle = 'preserve-3d';
-        // ensure ospin has base transform
-        if (ospin) ospin.style.transform = `rotateX(${ -tY }deg) rotateY(${ tX }deg)`;
+  // ===== Typing Wishes Sequence =====
+  const wishScreen = document.getElementById('wish-screen');
+  const wishText = document.getElementById('wish-text');
 
-        startAppAfterReveal();
-      }, 1100);
+  if (wishScreen && wishText) {
+    wishScreen.classList.remove('hidden');
+    wishScreen.classList.add('show');
+    typeWriter("Someone special deserves a magical surprise…", wishText, 70, () => {
+      setTimeout(() => {
+        wishScreen.classList.remove('show');
+        setTimeout(() => {
+          wishScreen.classList.add('hidden');
+          odrag.classList.remove('hidden');
+          startAppAfterReveal();
+        }, 1000);
+      }, 1500);
+    });
+  } else {
+    // fallback: if wish screen missing, show carousel directly
+    odrag.classList.remove('hidden');
+    startAppAfterReveal();
+  }
+}, 1100);
+
+// ===== Helper: Typewriter Effect =====
+function typeWriter(text, element, delay, callback) {
+  element.textContent = "";
+  let i = 0;
+  const timer = setInterval(() => {
+    element.textContent += text.charAt(i);
+    i++;
+    if (i >= text.length) {
+      clearInterval(timer);
+      if (callback) callback();
+    }
+  }, delay);
+}
+
     });
   } else {
     if (odrag) odrag.classList.remove('hidden');
@@ -249,6 +277,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // start extras like fireworks
     startExtrasSafe();
+
+    
 
     // hide cover to avoid intercepting pointers
     setTimeout(function () {
@@ -352,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const observer = new MutationObserver((mutations) => {
     mutations.forEach(m => {
       if (m.attributeName === 'class' && birthdayPage.classList.contains('active')) {
-        setTimeout(() => flipBtn.classList.add('show'), 10000);
+        setTimeout(() => flipBtn.classList.add('show'), 2000);
       }
     });
   });
@@ -365,6 +395,9 @@ document.addEventListener('DOMContentLoaded', () => {
   flipCard.addEventListener('click', doFlip);
   flipCard.addEventListener('touchstart', doFlip); // mobile tap
 });
+
+
+
 
 
 
