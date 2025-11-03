@@ -1,681 +1,407 @@
-@import url('https://fonts.googleapis.com/css2?family=Amita:wght@400;700&family=Pacifico&display=swap');
+// main.js - unified JS-driven rotation + pointer drag (drop-in replacement)
+document.addEventListener("DOMContentLoaded", function () {
+  console.log("🎁 DOM Loaded - unified working version");
 
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;touch-action:none}
-* {
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  -webkit-tap-highlight-color: transparent;
-}
-body{
-  font-family:"Pacifico",sans-serif;
-  background: radial-gradient(ellipse at center, #2a0a29 0%, #160412 60%);
-  overflow:hidden;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  perspective:1000px;
-  color:#fff;
-}
+  // ========== CONFIG ==========
+  var radius = 170; // closer zoom (tweak 120-200)
+  var autoRotate = true;
+  var rotateSpeed = -60; // seconds per full rotation (negative = reverse)
+  var imgWidth = 120;
+  var imgHeight = 170;
+  var bgMusicURL = 'music/setlove.mp3';
+  var bgMusicControls = false;
 
-/* --- COVER + GIFT --- */
-.cover{
-  position:fixed;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:999;
-  pointer-events:auto;
-}
+  // ========== ELEMENTS ==========
+  var odrag = document.getElementById('drag-container');
+  var ospin = document.getElementById('spin-container');
+  var gift = document.getElementById('gift');
+  var cover = document.getElementById('cover');
+  var canvasConfetti = window.confetti;
+  var audioElem = null;
+  var aImg = ospin ? ospin.getElementsByTagName('img') : [];
+  var aVid = ospin ? ospin.getElementsByTagName('video') : [];
+  var aEle = ospin ? [].slice.call(aImg).concat([].slice.call(aVid)) : [];
+  var ground = document.getElementById('ground');
 
-.sparkles{
-  position:absolute;
-  inset:0;
-  background:
-    radial-gradient(circle at 10% 20%, rgba(255,255,255,0.03), transparent 8%),
-    radial-gradient(circle at 80% 70%, rgba(255,255,255,0.02), transparent 10%);
-  animation: slowShift 12s linear infinite;
-  filter: blur(2px);
-  z-index:0;
-}
-@keyframes slowShift{ from{transform:translateY(-3%)} to{transform:translateY(3%)} }
+  if (!odrag || !ospin) console.warn('drag-container or spin-container missing - carousel may not initialize.');
 
-.gift-container{
-  z-index:2;
-  text-align:center;
-  transform-style:preserve-3d;
-}
-
-.hint{
-  margin-top:18px;
-  font-size:18px;
-  opacity:.92;
-  color: #ffd9ea;
-  text-shadow: 0 3px 12px rgba(0,0,0,0.6);
-}
-
-/* Gift build (simple cube + lid + ribbons + bow) */
-.gift{
-  width:200px;
-  height:200px;
-  position:relative;
-  margin:0 auto;
-  transform-style:preserve-3d;
-  transform: translateZ(0);
-  cursor:pointer;
-  transition: transform .3s cubic-bezier(.2,.9,.3,1);
-}
-.gift:hover{ transform: translateY(-8px) scale(1.02) }
-
-.box{
-  position:absolute;
-  width:100%;
-  height:100%;
-  transform-style:preserve-3d;
-  transform: translateZ(-12px);
-  transition: transform .5s ease;
-}
-.box .front, .box .left, .box .right, .box .back{
-  position:absolute; width:100%; height:100%; background:linear-gradient(180deg,#ff4b5c,#b6051a);
-  border:6px solid rgba(255,255,255,0.12);
-  border-radius:8px;
-  box-shadow: 0 18px 40px rgba(0,0,0,0.6), inset 0 -6px 18px rgba(0,0,0,0.18);
-}
-.box .left{ transform: rotateY(90deg) translateZ(100px); width:200px; left:-100px }
-.box .right{ transform: rotateY(-90deg) translateZ(100px); width:200px; right:-100px }
-.box .back{ transform: rotateY(180deg) translateZ(0px) }
-
-/* Lid */
-.lid{
-  position:absolute;
-  width:220px;
-  height:52px;
-  left:50%;
-  top:-18px;
-  transform: translateX(-50%) translateZ(110px);
-  background:linear-gradient(180deg,#ffd28a,#ffb700);
-  border-radius:8px;
-  box-shadow: 0 14px 30px rgba(0,0,0,0.5), inset 0 -4px 12px rgba(0,0,0,0.12);
-  transform-origin: center bottom;
-  transition: transform 800ms cubic-bezier(.2,.9,.3,1), top 700ms;
-  z-index:3;
-  border: 4px solid rgba(255,255,255,0.16);
-}
-
-/* Ribbons and bow */
-.ribbon{
-  position:absolute;
-  background:linear-gradient(180deg,#ffdb5e,#ff8b00);
-  border-radius:2px;
-  z-index:4;
-}
-.ribbon.horizontal{
-  height:18px;width:220px;left:50%;top:92px;transform:translateX(-50%);box-shadow:0 6px 14px rgba(0,0,0,0.4)
-}
-.ribbon.vertical{
-  width:18px;height:220px;left:96px;top: -10px;transform:translateZ(120px)
-}
-.bow{
-  position:absolute;left:50%;top:12px;transform:translateX(-50%) translateZ(140px);
-  width:44px;height:44px;border-radius:50%;
-  background: radial-gradient(circle at 35% 25%, #fff6c9 0%, #ffdb5e 12%, #ff8b00 70%);
-  box-shadow:0 8px 20px rgba(0,0,0,0.45);
-  z-index:5;
-}
-
-/* Idle glow & bounce */
-.gift{ animation: idleFloat 2.6s ease-in-out infinite; }
-@keyframes idleFloat {
-  0%{ transform: translateY(0) }
-  50%{ transform: translateY(-6px) scale(1.01) }
-  100%{ transform: translateY(0) }
-}
-
-/* Opening states */
-.gift.open .lid{
-  transform: translateX(-50%) translateZ(160px) rotateX(-65deg) rotateY(-6deg);
-  top:-56px;
-}
-.gift.open .box{ transform: translateZ(-28px) scale(.98) }
-
-/* Fade out the cover after reveal */
-.cover.fade-out{
-  animation: coverFade .8s ease forwards;
-  pointer-events:none;
-}
-@keyframes coverFade{ to{ opacity:0; visibility:hidden } }
-
-/* Confetti overlay adjustments */
-canvas#canvas{ position:fixed; inset:0; z-index:50; pointer-events:none; }
-
-/* --- EXISTING CAROUSEL + other styles (kept from your main.css) --- */
-#drag-container, #spin-container {
-  position: relative;
-  position: relative;
-  display: flex;
-  margin: auto;
-  transform-style: preserve-3d;
-  transform-origin: 50% 50%;
-  z-index: 100;
-  transition: transform 0.3s ease-out;
-  cursor: grab;
-}
-#drag-container {
-  perspective: 1200px;
-  transform-style: preserve-3d;
-}
-
-#drag-container.hidden{ display:none }
-#drag-container img, #drag-container video{
-  transform-style: preserve-3d;
-  position:absolute;
-  left:0;
-  object-fit:cover;
-  width:86px;height:124px;
-  top:0;
-  line-height:200px;font-size:50px;text-align:center;
-  box-shadow:0 0 8px #fff;border:4px solid #fff;border-top-left-radius:30px;border-top-right-radius:30px;
-  animation: delayShadow 1s forwards;
-  animation-delay:2s;
-}
-@keyframes delayShadow{ to{ box-shadow: rgb(0 0 0 / 0%) 1px 4px 7px, rgb(0 0 0 / 27%) 1px 3px 6px } }
-#drag-container img:hover{ box-shadow:0 0 15px #fffd }
-#drag-container p{ line-height:116px; position:absolute; top:100%; left:50%; transform:translate(-50%,-50%) rotateX(90deg); color:#fff; animation: fadein 15s ease }
-@keyframes fadein { from{ opacity:0 } to{ opacity:1 } }
-
-.button{ height:121px; padding:10px 30px; background:url('./images/Message.png'); background-size:contain; background-repeat:no-repeat; background-position:center; border-radius:20px; cursor:pointer; outline:none; border:none; position:absolute; top:13%; left:24%; opacity:0; animation:showUp 1s forwards; animation-delay:5s }
-.button:hover{ transform:scale(2.1) }
-@keyframes showUp{ to{ opacity:1 } }
-
-#ground{ width:900px;height:900px; position:absolute; top:100%; left:50%; transform: translate(-50%,-50%) rotateX(90deg); background: radial-gradient(circle at center, rgba(153,153,153,0.2), transparent 60%) }
-
-p{ font-weight:600; font-size:4vw; text-align:center }
-
-/* Responsiveness */
-@media (max-width:658px){
-  p{ font-size:12vw }
-  .gift{ width:160px; height:160px }
-  .lid{ width:180px; height:44px }
-  .ribbon.horizontal{ width:180px }
-}
-
-/* === Fix auto spin === */
-#spin-container.auto-spin {
-  animation: spin 60s infinite linear;
-  animation-play-state: running;
-}
-
-@keyframes spin {
-  from { transform: rotateY(0deg); }
-  to { transform: rotateY(360deg); }
-}
-
-@keyframes spinRevert {
-  from { transform: rotateY(360deg); }
-  to { transform: rotateY(0deg); }
-}
-
-/* === Cinematic zoom + glow pulse === */
-@keyframes zoomOutReveal {
-  from { transform: scale(1.15) rotateX(-10deg); opacity: 0.8; }
-  to   { transform: scale(1)   rotateX(-10deg); opacity: 1; }
-}
-
-#drag-container.reveal-zoom {
-  animation: zoomOutReveal 2.2s cubic-bezier(0.25, 1, 0.3, 1) forwards;
-}
-
-@keyframes glowPulse {
-  0%   { text-shadow: 0 0 0px #fff; }
-  40%  { text-shadow: 0 0 18px #ff8ef5, 0 0 36px #ffb2f0; color: #ffe5ff; }
-  100% { text-shadow: 0 0 4px #fff; color: #ffffff; }
-}
-
-#drag-container p.glow {
-  animation: glowPulse 2s ease-in-out forwards;
-}
-
-
-/* === Balloons Floating Animation === */
-#balloon-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 20;
-}
-
-.balloon {
-  position: absolute;
-  bottom: -120px;
-  width: 40px;
-  height: 55px;
-  background: radial-gradient(circle at 35% 25%, #fff7f7, var(--balloon-color));
-  border-radius: 50% 50% 45% 55%;
-  box-shadow: inset -3px -8px 10px rgba(0,0,0,0.15);
-  animation: floatUp linear infinite;
-}
-.balloon::after {
-  content: '';
-  position: absolute;
-  width: 2px;
-  height: 60px;
-  background: rgba(255,255,255,0.5);
-  left: 50%;
-  top: 100%;
-  transform: translateX(-50%);
-}
-
-@keyframes floatUp {
-  0% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-110vh) rotate(8deg);
-    opacity: 0.8;
-  }
-}
-
-
-
-
-/* === Birthday Page Reveal === */
-#birthday-page {
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(circle at center, #ffb6c1, #ff69b4, #c71585);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  color: white;
-  text-align: center;
-  opacity: 0;
-  visibility: hidden;
-  z-index: 9999;
-  transition: opacity 1s ease, visibility 1s ease;
-  overflow: hidden;
-}
-#birthday-page.active {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* === Fix Birthday Page Alignment === */
-.birthday-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 20px;
-  width: 100%;
-  max-width: 700px;
-  margin: 0 auto;
-}
-
-/* Ensure title stays centered */
-.birthday-title {
-  width: 100%;
-  text-align: center;
-}
-
-/* Keep flip-card centered horizontally */
-.flip-card {
-  margin: 0 auto;
-  display: flex;
-  justify-content: center;
-}
-
-/* Buttons aligned nicely below */
-#flipBtn, .back-btn {
-  display: inline-block;
-  margin: 15px 10px 0 10px;
-}
-
-.birthday-content {
-  animation: fadeInUp 1.8s ease forwards;
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(60px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.birthday-title {
-  font-family: 'Pacifico', cursive;
-  font-size: 3em;
-  color: #fff;
-  text-shadow: 0 0 25px #ffccff, 0 0 45px #ff66cc;
-  margin-bottom: 20px;
-  animation: glowPulseText 3s ease-in-out infinite;
-}
-@keyframes glowPulseText {
-  0%,100% { text-shadow: 0 0 10px #fff, 0 0 20px #ff66cc; }
-  50% { text-shadow: 0 0 25px #fff, 0 0 60px #ff99ff; }
-}
-
-.birthday-photo {
-  width: 280px;
-  height: 400px;
-  object-fit: cover;
-  border-radius: 20px;
-  box-shadow: 0 0 25px rgba(255,255,255,0.8);
-  border: 3px solid #fff;
-  margin: 10px 0 20px 0;
-  animation: photoFloat 5s ease-in-out infinite;
-}
-@keyframes photoFloat {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-.birthday-message {
-  font-size: 1.4em;
-  line-height: 1.6em;
-  margin: 0 20px;
-  animation: typeIn 5s steps(60) 1 forwards;
-  opacity: 0;
-}
-@keyframes typeIn {
-  from { width: 0; opacity: 1; }
-  to { width: 100%; opacity: 1; }
-}
-
-.back-btn {
-  background: linear-gradient(90deg, #ff66cc, #ff99ff);
-  border: none;
-  color: white;
-  font-weight: 600;
-  font-size: 1.1em;
-  padding: 12px 30px;
-  border-radius: 30px;
-  margin-top: 25px;
-  cursor: pointer;
-  box-shadow: 0 0 15px rgba(255,255,255,0.3);
-  transition: transform 0.3s ease, background 0.4s ease;
-}
-.back-btn:hover {
-  transform: scale(1.1);
-  background: linear-gradient(90deg, #ff99ff, #ff66cc);
-}
-
-/* Floating hearts background */
-#birthday-page::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url('https://cdn.jsdelivr.net/gh/Amritesh01/assets/heart-pattern.svg');
-  opacity: 0.08;
-  animation: slowDrift 25s linear infinite;
-}
-@keyframes slowDrift {
-  from { transform: translateY(0); }
-  to { transform: translateY(-10%); }
-}
-
-
-
-/* === Flip Card Surprise (Left-Right flip version) === */
-.flip-card {
-  perspective: 1200px;
-  position: relative;
-  display: inline-block;
-}
-.flip-inner {
-  position: relative;
-  width: 300px;
-  height: 450px;
-  transform-style: preserve-3d;
-  transition: transform 1s ease;
-}
-.flip-card.flipped .flip-inner {
-  transform: rotateY(180deg); /* ⬅ changed from rotateX to rotateY */
-}
-
-/* front + back faces */
-.flip-front, .flip-back {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  top: 0;
-  left: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-.flip-back {
-  transform: rotateY(180deg); /* ⬅ horizontal flip */
-}
-
-/* adjust images inside flip */
-.flip-card img {
-  width: 260px;
-  height: 400px;
-  object-fit: cover;
-  border-radius: 20px;
-  box-shadow: 0 0 25px rgba(255,255,255,0.8);
-  border: 3px solid #fff;
-  margin-bottom: 14px;
-  animation: photoFloat 5s ease-in-out infinite;
-}
-
-/* messages */
-.flip-card .birthday-message {
-  font-size: 1.2em;
-  line-height: 1.4em;
-  color: #fff;
-  text-align: center;
-  margin: 0 10px;
-}
-
-/* Flip hint button */
-.flip-btn {
-  margin-top: 40px;
-  padding: 10px 24px;
-  font-size: 1.1em;
-  background: linear-gradient(90deg,#ff66cc,#ff99ff);
-  border: none;
-  border-radius: 30px;
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 0 15px rgba(255,255,255,0.3);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity .6s ease, visibility .6s ease;
-}
-.flip-btn.show {
-  opacity: 1;
-  visibility: visible;
-}
-.flip-btn:active {
-  transform: scale(0.96);
-}
-
-/* Responsive scaling */
-@media (max-width: 650px) {
-  .flip-inner { width: 220px; height: 300px; }
-  .flip-card img { width: 200px; height: 200px; }
-  .flip-card .birthday-message { font-size: 1em; }
-}
-
-
-
-/* === MOBILE RESPONSIVENESS === */
-@media (max-width: 768px) {
-  .birthday-title {
-    font-size: 2.2em;
-    margin-bottom: 12px;
+  // Ensure ground sizing
+  if (ground) {
+    ground.style.width = radius * 3 + "px";
+    ground.style.height = radius * 3 + "px";
   }
 
-  .flip-card {
-    transform: scale(0.9);
+  // Ensure correct 3D context on container and spin
+  if (odrag) {
+    odrag.style.perspective = odrag.style.perspective || "1200px";
+    odrag.style.transformStyle = odrag.style.transformStyle || "preserve-3d";
+    odrag.style.touchAction = 'none'; // capture pointer moves
+    odrag.style.position = odrag.style.position || 'relative';
+  }
+  if (ospin) {
+    ospin.style.transformStyle = ospin.style.transformStyle || "preserve-3d";
+    ospin.style.transformOrigin = ospin.style.transformOrigin || "50% 50%";
+    ospin.style.willChange = 'transform';
+    ospin.style.width = imgWidth + "px";
+    ospin.style.height = imgHeight + "px";
   }
 
-  .flip-inner {
-    width: 220px;
-    height: 300px;
+  // ========== STATE ==========
+  var tX = 0, tY = 10;        // user tilt angles
+  var velX = 0, velY = 0;     // velocity for inertia
+  var autoRotateAngle = 0;    // JS driven auto rotate (degrees)
+  var lastFrameTime = performance.now();
+  var isDragging = false;
+  var pointerId = null;
+  var lastPointerX = 0, lastPointerY = 0;
+
+  // ========== LAYOUT ==========
+  function init(delayTime) {
+    if (!aEle) return;
+    for (var i = 0; i < aEle.length; i++) {
+      var deg = i * (360 / aEle.length);
+      aEle[i].style.transition = "transform 1s";
+      aEle[i].style.transitionDelay = (delayTime ? delayTime + "s" : ((aEle.length - i) / 4) + "s");
+      aEle[i].style.transform = "rotateY(" + deg + "deg) translateZ(" + radius + "px)";
+      aEle[i].style.opacity = 1;
+    }
   }
 
-  .flip-card img {
-    width: 200px;
-    height: 260px; /* slightly taller for better view */
+  // ========== APPLY TRANSFORM ==========
+  // combine user tilt (tX,tY) and autoRotateAngle into ospin transform
+  function applyTransform() {
+    if (!ospin) return;
+    // clamp tY so it stays reasonable
+    if (tY > 80) tY = 80;
+    if (tY < -80) tY = -80;
+    // compose transforms: tilt X then rotate Y (auto + user)
+    var totalY = tX + autoRotateAngle;
+    ospin.style.transform = `rotateX(${ -tY }deg) rotateY(${ totalY }deg)`;
   }
 
-  .birthday-message {
-    font-size: 1em;
-    line-height: 1.5em;
-    margin: 0 8px;
+  // ========== AUTO ROTATE (JS-driven) ==========
+  function updateAutoRotate(dt) {
+    if (!autoRotate) return;
+    // rotateSpeed: seconds per full rotation. Convert to deg per ms.
+    var degPerMs = (360 / (Math.abs(rotateSpeed) * 1000));
+    var sign = rotateSpeed < 0 ? -1 : 1;
+    autoRotateAngle += sign * degPerMs * dt;
+    // keep in sensible range
+    if (autoRotateAngle > 360 || autoRotateAngle < -360) autoRotateAngle %= 360;
   }
 
-  #flipBtn, .back-btn {
-    font-size: 0.95em;
-    padding: 10px 18px;
-    margin: 12px 4px 0 4px; /* smaller gap for phones */
-  }
-}
+  // ========== MAIN RAF LOOP ==========
+  function raf(now) {
+    var dt = now - lastFrameTime;
+    lastFrameTime = now;
 
-/* === EXTRA SMALL DEVICES (Phones under 480px) === */
-@media (max-width: 480px) {
-  .birthday-title {
-    font-size: 1.8em;
-    line-height: 1.3em;
-  }
+    // apply inertia when not dragging
+    if (!isDragging) {
+      // damp velocities
+      velX *= 0.95;
+      velY *= 0.95;
+      tX += velX * (dt / 16.67); // scale to approx per-frame
+      tY += velY * (dt / 16.67);
+      // slowly blend back to small tY if none
+      if (Math.abs(velX) < 0.01 && Math.abs(velY) < 0.01) {
+        // no-op, velocities small
+      }
+    }
 
-  .flip-inner {
-    width: 180px;
-    height: 250px;
-  }
+    // update auto-rotate angle only when not dragging
+    if (!isDragging) updateAutoRotate(dt);
 
-  .flip-card img {
-    width: 170px;
-    height: 220px;
-  }
-
-  .birthday-message {
-    font-size: 0.9em;
+    applyTransform();
+    requestAnimationFrame(raf);
   }
 
-  #flipBtn, .back-btn {
-    width: 80%;
-    margin: 10px auto;
-    display: block;
+  // start RAF
+  requestAnimationFrame(raf);
+
+  // ========== POINTER HANDLERS ==========
+  function onPointerDown(e) {
+    // Only respond with the left button (button 0) for mouse
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (!ospin) return;
+
+    isDragging = true;
+    pointerId = e.pointerId;
+    lastPointerX = e.clientX;
+    lastPointerY = e.clientY;
+    velX = velY = 0; // reset velocities
+    // capture pointer so we still get moves outside element
+    try { e.target.setPointerCapture(pointerId); } catch (err) {}
+    // pause auto-rotate while dragging
+    // (we keep autoRotate true but visually autoRotateAngle stops updating because isDragging true)
+  }
+
+  function onPointerMove(e) {
+    if (!isDragging || e.pointerId !== pointerId) return;
+    var dx = e.clientX - lastPointerX;
+    var dy = e.clientY - lastPointerY;
+    lastPointerX = e.clientX;
+    lastPointerY = e.clientY;
+
+    // sensitivity tuning
+    var sensitivityX = 0.25;
+    var sensitivityY = 0.18;
+
+    // update angles
+    tX += dx * sensitivityX;
+    tY += dy * sensitivityY;
+
+    // store velocities for inertia (scaled)
+    velX = dx * 0.15;
+    velY = dy * 0.12;
+
+    // while dragging, don't accumulate auto-rotation
+    // applyTransform will use same autoRotateAngle but not update it
+    applyTransform();
+    e.preventDefault && e.preventDefault();
+  }
+
+  function onPointerUp(e) {
+    if (!isDragging || e.pointerId !== pointerId) return;
+    isDragging = false;
+    try { e.target.releasePointerCapture(pointerId); } catch (err) {}
+    pointerId = null;
+    // inertia continues via RAF (velX/velY damping)
+    // autoRotate resumes automatically because isDragging false
+  }
+
+  // Attach pointer listeners to odrag (if available) or document fallback
+  var pointerTarget = odrag || document;
+  pointerTarget.addEventListener('pointerdown', onPointerDown, {passive:false});
+  window.addEventListener('pointermove', onPointerMove, {passive:false});
+  window.addEventListener('pointerup', onPointerUp, {passive:false});
+  window.addEventListener('pointercancel', onPointerUp);
+
+  // ========== WHEEL TO ZOOM ==========
+  window.addEventListener('wheel', function (e) {
+    var delta = e.deltaY;
+    // deltaY positive scroll down -> increase radius (move images further)
+    radius += delta * 0.04;
+    if (radius < 80) radius = 80;
+    if (radius > 600) radius = 600;
+    init(0);
+    e.preventDefault && e.preventDefault();
+  }, {passive:false});
+
+  // ========== INIT / GIFT HANDLING / MUSIC / CONFETTI ==========
+  // Keep original gift logic: click opens lid, plays confetti and audio, then reveal
+  if (gift && cover && odrag) {
+    gift.addEventListener('click', function () {
+      gift.style.pointerEvents = 'none';
+      gift.classList.add('open');
+
+      if (canvasConfetti) canvasConfetti({ particleCount: 100, spread: 90, origin: { y: 0.6 } });
+
+      // audio attempt
+      try {
+        if (!audioElem) {
+          audioElem = document.createElement('audio');
+          audioElem.src = bgMusicURL || '';
+          audioElem.loop = true;
+          audioElem.preload = 'auto';
+          document.body.appendChild(audioElem);
+        }
+        if (audioElem && audioElem.src) {
+          audioElem.play().catch(err => console.warn('Audio blocked:', err));
+        }
+      } catch (err) { console.warn('audio error', err); }
+
+      setTimeout(function () {
+  cover.classList.add('fade-out');
+
+  // ===== Typing Wishes Sequence =====
+  const wishScreen = document.getElementById('wish-screen');
+  const wishText = document.getElementById('wish-text');
+
+  if (wishScreen && wishText) {
+    wishScreen.classList.remove('hidden');
+    wishScreen.classList.add('show');
+    typeWriter("Someone special deserves a magical surprise…", wishText, 70, () => {
+      setTimeout(() => {
+        wishScreen.classList.remove('show');
+        setTimeout(() => {
+          wishScreen.classList.add('hidden');
+          odrag.classList.remove('hidden');
+          startAppAfterReveal();
+        }, 1000);
+      }, 1500);
+    });
+  } else {
+    // fallback: if wish screen missing, show carousel directly
+    odrag.classList.remove('hidden');
+    startAppAfterReveal();
+  }
+}, 1100);
+
+// ===== Helper: Typewriter Effect =====
+function typeWriter(text, element, delay, callback) {
+  element.textContent = "";
+  let i = 0;
+  const timer = setInterval(() => {
+    element.textContent += text.charAt(i);
+    i++;
+    if (i >= text.length) {
+      clearInterval(timer);
+      if (callback) callback();
+    }
+  }, delay);
+}
+
+    });
+  } else {
+    if (odrag) odrag.classList.remove('hidden');
+    startAppAfterReveal();
+  }
+
+  function startAppAfterReveal() {
+    // initial tilt and layout
+    tX = 0; tY = 12;
+    autoRotateAngle = 0;
+    init();
+    // ensure ospin has transform-style
+    if (ospin) {
+      ospin.style.transformStyle = 'preserve-3d';
+      ospin.style.transformOrigin = '50% 50%';
+      ospin.style.transform = `rotateX(${ -tY }deg) rotateY(${ tX }deg)`;
+    }
+
+    // small UI touches: glow text and start extras
+    setTimeout(function () {
+      const birthdayText = document.querySelector('#drag-container p');
+      if (birthdayText) birthdayText.classList.add('glow');
+    }, 1200);
+
+    // start extras like fireworks
+    startExtrasSafe();
+
+    
+
+    // hide cover to avoid intercepting pointers
+    setTimeout(function () {
+      if (cover) cover.style.display = "none";
+    }, 2200);
+  }
+
+  // ========== SAFE START FOR EXTRAS ==========
+  function startExtrasSafe() {
+    try { startExtras(); } catch (e) { /* ignore if not defined */ }
+  }
+
+  // ========== RESTORE IMAGE EFFECTS (shadows etc) ==========
+  function restoreImageEffects() {
+    var imgs = document.querySelectorAll('#drag-container img');
+    imgs.forEach(img => {
+      img.style.boxShadow = "0 0 8px #fff";
+      img.style.webkitBoxReflect = "below 10px linear-gradient(transparent, transparent, #0005)";
+      img.style.transition = "all 1.2s ease";
+    });
+  }
+  restoreImageEffects();
+
+  // ========== START - layout init ==========
+  init();
+  applyTransform();
+
+  // ========== RESIZE ==========
+  window.addEventListener('resize', function () {
+    if (ground) {
+      ground.style.width = radius * 3 + "px";
+      ground.style.height = radius * 3 + "px";
+    }
+    var canvas = document.getElementById('canvas');
+    if (canvas) {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    init();
+    applyTransform();
+  });
+
+  // ========== helper confetti function for button ==========
+  window.confettiClick = function () {
+    if (window.confetti) window.confetti({ particleCount: 80, spread: 120, origin: { y: 0.6 } });
+  };
+
+
+  // === 🎈 BALLOON EFFECT ===
+function startBalloons() {
+  const container = document.getElementById('balloon-container');
+  const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#1dd1a1', '#f368e0', '#ff9ff3'];
+  let balloonCount = 20; // number of balloons
+
+  for (let i = 0; i < balloonCount; i++) {
+    let balloon = document.createElement('div');
+    balloon.classList.add('balloon');
+    balloon.style.setProperty('--balloon-color', colors[Math.floor(Math.random() * colors.length)]);
+    balloon.style.left = Math.random() * 100 + '%';
+    balloon.style.animationDuration = 8 + Math.random() * 4 + 's';
+    balloon.style.animationDelay = Math.random() * 5 + 's';
+    container.appendChild(balloon);
   }
 }
+startBalloons();
 
+});
 
-/* Floating hint above the carousel */
-.carousel-hint {
-  position: fixed;
-  top: 6%;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #ffe5ff;
-  font-family: 'Pacifico', cursive;
-  font-size: 1.8em;
-  text-shadow: 0 0 10px #ff66cc, 0 0 20px #ff99ff;
-  z-index: 1000;
-  opacity: 0;
-  animation: fadeInHint 2s ease forwards 2s, pulseHint 2s ease-in-out infinite 2s;
-  pointer-events: none;
-}
+// === Birthday Page Trigger ===
+document.addEventListener('DOMContentLoaded', () => {
+  const birthdayPage = document.getElementById('birthday-page');
+  const backBtn = document.getElementById('backBtn');
+  const button = document.querySelector('.button'); // your existing message button
 
-@keyframes fadeInHint {
-  from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-  to { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-
-@keyframes pulseHint {
-  0%, 100% { transform: translateX(-50%) scale(1); }
-  50% { transform: translateX(-50%) scale(1.08); }
-}
-
-@media (max-width: 650px) {
-  .carousel-hint {
-    font-size: 1.2em;
-    top: 8%;
+  if (button) {
+    button.addEventListener('click', () => {
+      document.body.style.overflow = 'hidden';
+      birthdayPage.classList.add('active');
+    });
   }
-}
 
-
-
-
-
-/* ===== Typing Wishes Screen ===== */
-#wish-screen {
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(circle at center, #2a0a29, #160412);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 900;
-  color: #fff;
-  font-family: 'Dancing Script', cursive;
-  font-size: 2em;
-  text-align: center;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 1s ease, visibility 1s ease;
-}
-
-#wish-screen.show {
-  opacity: 1;
-  visibility: visible;
-}
-
-#wish-text {
-  width: 80%;
-  max-width: 600px;
-  white-space: nowrap;
-  overflow: hidden;
-  border-right: 3px solid #ff99cc;
-  animation: blinkCursor 0.8s steps(1) infinite;
-  text-shadow: 0 0 15px #ff99cc, 0 0 35px #ff66cc;
-}
-
-@keyframes blinkCursor {
-  50% { border-color: transparent; }
-}
-
-/* small screens */
-@media (max-width: 600px) {
-  #wish-text {
-    font-size: 1.5em;
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      birthdayPage.classList.remove('active');
+      document.body.style.overflow = 'hidden';
+    });
   }
-}
+});
 
 
-/* ✨ Sparkling lights behind the typing message */
-.wish-sparkles {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 10% 30%, rgba(255,255,255,0.05), transparent 10%),
-    radial-gradient(circle at 70% 80%, rgba(255,255,255,0.06), transparent 10%),
-    radial-gradient(circle at 90% 40%, rgba(255,200,255,0.08), transparent 12%),
-    radial-gradient(circle at 40% 20%, rgba(255,255,255,0.05), transparent 8%);
-  background-size: 200% 200%;
-  animation: sparkleDrift 18s linear infinite;
-  filter: blur(2px);
-  z-index: 0;
-}
 
-#wish-text {
-  position: relative;
-  z-index: 2;
-}
+// === Flip Card Logic ===
+document.addEventListener('DOMContentLoaded', () => {
+  const birthdayPage = document.getElementById('birthday-page');
+  const flipCard = document.querySelector('.flip-card');
+  const flipBtn = document.getElementById('flipBtn');
 
-@keyframes sparkleDrift {
-  0%   { background-position: 0% 0%; }
-  50%  { background-position: 100% 100%; }
-  100% { background-position: 0% 0%; }
-}
+  if (!birthdayPage || !flipCard || !flipBtn) return;
+
+  // show flip button 10 seconds after birthday page appears
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach(m => {
+      if (m.attributeName === 'class' && birthdayPage.classList.contains('active')) {
+        setTimeout(() => flipBtn.classList.add('show'), 2000);
+      }
+    });
+  });
+  observer.observe(birthdayPage, { attributes: true });
+
+  // flip on image or button tap
+  const doFlip = () => flipCard.classList.toggle('flipped');
+
+  flipBtn.addEventListener('click', doFlip);
+  flipCard.addEventListener('click', doFlip);
+  flipCard.addEventListener('touchstart', doFlip); // mobile tap
+});
+
+
+
+
+
+
+
+
+
+
