@@ -572,3 +572,110 @@ p{ font-weight:600; font-size:4vw; text-align:center }
 }
 
 
+/* Floating hint above the carousel */
+.carousel-hint {
+  position: fixed;
+  top: 6%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #ffe5ff;
+  font-family: 'Pacifico', cursive;
+  font-size: 1.8em;
+  text-shadow: 0 0 10px #ff66cc, 0 0 20px #ff99ff;
+  z-index: 1000;
+  opacity: 0;
+  animation: fadeInHint 2s ease forwards 2s, pulseHint 2s ease-in-out infinite 2s;
+  pointer-events: none;
+}
+
+@keyframes fadeInHint {
+  from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes pulseHint {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.08); }
+}
+
+@media (max-width: 650px) {
+  .carousel-hint {
+    font-size: 1.2em;
+    top: 8%;
+  }
+}
+
+
+
+
+
+/* ===== Typing Wishes Screen ===== */
+#wish-screen {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #2a0a29, #160412);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 900;
+  color: #fff;
+  font-family: 'Dancing Script', cursive;
+  font-size: 2em;
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 1s ease, visibility 1s ease;
+}
+
+#wish-screen.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+#wish-text {
+  width: 80%;
+  max-width: 600px;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 3px solid #ff99cc;
+  animation: blinkCursor 0.8s steps(1) infinite;
+  text-shadow: 0 0 15px #ff99cc, 0 0 35px #ff66cc;
+}
+
+@keyframes blinkCursor {
+  50% { border-color: transparent; }
+}
+
+/* small screens */
+@media (max-width: 600px) {
+  #wish-text {
+    font-size: 1.5em;
+  }
+}
+
+
+/* ✨ Sparkling lights behind the typing message */
+.wish-sparkles {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 10% 30%, rgba(255,255,255,0.05), transparent 10%),
+    radial-gradient(circle at 70% 80%, rgba(255,255,255,0.06), transparent 10%),
+    radial-gradient(circle at 90% 40%, rgba(255,200,255,0.08), transparent 12%),
+    radial-gradient(circle at 40% 20%, rgba(255,255,255,0.05), transparent 8%);
+  background-size: 200% 200%;
+  animation: sparkleDrift 18s linear infinite;
+  filter: blur(2px);
+  z-index: 0;
+}
+
+#wish-text {
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes sparkleDrift {
+  0%   { background-position: 0% 0%; }
+  50%  { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
