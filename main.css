@@ -758,7 +758,7 @@ p {
 @media (max-width: 650px) {
   .flip-inner {
     width: 320px;
-    height: 420px; /* more vertical space for the long message */
+    height: 400px; /* more vertical space for the long message */
   }
 
   .flip-card img {
@@ -787,7 +787,7 @@ p {
 
    .flip-inner {
     width: 360px;
-    height: 440px;
+    height: 400px;
   }
 
   .flip-card img {
@@ -820,7 +820,7 @@ p {
 
   .flip-inner {
     width: 280px;
-    height: 420px; /* main fix for overlap */
+    height: 380px; /* main fix for overlap */
   }
 
   .flip-card img {
