@@ -529,6 +529,11 @@ p {
   justify-content: center;
 }
 
+
+
+
+
+
 /* Buttons aligned nicely below */
 #flipBtn,
 .back-btn {
@@ -664,10 +669,17 @@ p {
 
 .flip-inner {
   position: relative;
-  width: 300px;
+  width: 450px;
   height: 450px;
   transform-style: preserve-3d;
   transition: transform 1s ease;
+}
+
+.flip-card .birthday-message {
+  max-width: 100%;
+  line-height: 1.6;
+  margin-top: 8px;
+  margin-bottom: 40px;
 }
 
 .flip-card.flipped .flip-inner {
@@ -745,7 +757,7 @@ p {
 /* Responsive scaling */
 @media (max-width: 650px) {
   .flip-inner {
-    width: 220px;
+    width: 400px;
     height: 300px;
   }
 
@@ -756,6 +768,7 @@ p {
 
   .flip-card .birthday-message {
     font-size: 1em;
+    max-width: 100%;
   }
 }
 
@@ -771,7 +784,7 @@ p {
   }
 
   .flip-inner {
-    width: 220px;
+    width: 350px;
     height: 300px;
   }
 
@@ -783,6 +796,7 @@ p {
 
   .birthday-message {
     font-size: 1em;
+
     line-height: 1.5em;
     margin: 0 8px;
   }
@@ -806,6 +820,7 @@ p {
   .flip-inner {
     width: 180px;
     height: 250px;
+    max-width: 100%;
   }
 
   .flip-card img {
@@ -954,5 +969,3 @@ p {
     background-position: 0% 0%;
   }
 }
-
-
