@@ -376,12 +376,23 @@ p{ font-weight:600; font-size:4vw; text-align:center }
 }
 
 .birthday-message {
-  font-size: 1.4em;
+  font-size: 1.2em;
   line-height: 1.6em;
-  margin: 0 20px;
-  animation: typeIn 5s steps(60) 1 forwards;
+  margin: 12px 20px 40px 20px; /* adds breathing room under the message */
+  text-align: center;
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 90%;
+  animation: fadeInText 2.2s ease-in-out forwards;
   opacity: 0;
 }
+
+/* smoother fade-in instead of typewriter effect */
+@keyframes fadeInText {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes typeIn {
   from { width: 0; opacity: 1; }
   to { width: 100%; opacity: 1; }
@@ -533,7 +544,7 @@ p{ font-weight:600; font-size:4vw; text-align:center }
   .birthday-message {
     font-size: 1em;
     line-height: 1.5em;
-    margin: 0 8px;
+    margin: 10px 12px 60px 12px; /* more spacing below on mobile */
   }
 
   #flipBtn, .back-btn {
@@ -542,6 +553,20 @@ p{ font-weight:600; font-size:4vw; text-align:center }
     margin: 12px 4px 0 4px; /* smaller gap for phones */
   }
 }
+
+@media (max-width: 480px) {
+  .birthday-message {
+    font-size: 0.9em;
+    line-height: 1.4em;
+    margin: 8px 10px 70px 10px; /* ensures message doesn’t touch buttons */
+  }
+
+  .flip-card {
+    margin-bottom: 20px; /* extra space below the flip card */
+  }
+}
+
+
 
 /* === EXTRA SMALL DEVICES (Phones under 480px) === */
 @media (max-width: 480px) {
@@ -685,3 +710,97 @@ p{ font-weight:600; font-size:4vw; text-align:center }
   50%  { background-position: 100% 100%; }
   100% { background-position: 0% 0%; }
 }
+
+/* === FINAL BIRTHDAY MESSAGE FIX === */
+
+/* unify spacing and layout */
+.birthday-message,
+.flip-card .birthday-message {
+  font-size: 1.1em;
+  line-height: 1.6em;
+  margin: 12px 20px 60px 20px;
+  text-align: center;
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 90%;
+  animation: fadeInText 2.2s ease-in-out forwards;
+  opacity: 0;
+}
+
+/* soft fade animation */
+@keyframes fadeInText {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* make sure flip-card height doesn't clip the message */
+.flip-inner {
+  height: auto;
+  min-height: 400px;
+}
+
+/* keep content from overlapping buttons */
+.birthday-content {
+  padding-bottom: 90px; /* extra breathing space below the card */
+}
+
+/* adjust for tablets */
+@media (max-width: 768px) {
+  .birthday-message,
+  .flip-card .birthday-message {
+    font-size: 1em;
+    line-height: 1.5em;
+    margin: 10px 12px 70px 12px;
+  }
+
+  .flip-inner {
+    min-height: 320px;
+  }
+
+  .birthday-content {
+    padding-bottom: 100px;
+  }
+}
+
+/* adjust for phones */
+@media (max-width: 480px) {
+  .birthday-message,
+  .flip-card .birthday-message {
+    font-size: 0.9em;
+    line-height: 1.4em;
+    margin: 8px 10px 80px 10px;
+  }
+
+  .flip-inner {
+    min-height: 280px;
+  }
+
+  .birthday-content {
+    padding-bottom: 120px;
+  }
+}
+
+.birthday-message,
+.flip-card .birthday-message {
+  max-width: 95% !important;
+}
+
+/* === Desktop message width + spacing fix === */
+@media (min-width: 769px) {
+  .birthday-message,
+  .flip-card .birthday-message {
+    max-width: 700px !important; /* wider for desktop */
+    margin: 20px auto 60px auto; /* center + breathing space */
+    font-size: 1.3em;
+    line-height: 1.6em;
+  }
+
+  .flip-card {
+    margin-bottom: 40px; /* extra gap before buttons */
+  }
+
+  .birthday-content {
+    padding-bottom: 100px; /* prevents overlap with buttons */
+  }
+}
+
