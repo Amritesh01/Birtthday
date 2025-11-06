@@ -757,18 +757,20 @@ p {
 /* Responsive scaling */
 @media (max-width: 650px) {
   .flip-inner {
-    width: 400px;
-    height: 300px;
+    width: 320px;
+    height: 420px; /* more vertical space for the long message */
   }
 
   .flip-card img {
-    width: 200px;
-    height: 200px;
+    width: 220px;
+    height: 300px;
   }
 
   .flip-card .birthday-message {
-    font-size: 1em;
-    max-width: 100%;
+    font-size: 1.05em;
+    max-width: 95%;
+    line-height: 1.6;
+    margin-bottom: 40px; /* keeps clear space from button */
   }
 }
 
@@ -783,22 +785,21 @@ p {
     transform: scale(0.9);
   }
 
-  .flip-inner {
-    width: 350px;
-    height: 300px;
+   .flip-inner {
+    width: 360px;
+    height: 440px;
   }
 
   .flip-card img {
-    width: 200px;
-    height: 260px;
-    /* slightly taller for better view */
+    width: 240px;
+    height: 330px;
   }
 
   .birthday-message {
     font-size: 1em;
-
-    line-height: 1.5em;
-    margin: 0 8px;
+    max-width: 100%;
+    margin: 0 12px 40px;
+    line-height: 1.55;
   }
 
   #flipBtn,
@@ -818,25 +819,26 @@ p {
   }
 
   .flip-inner {
-    width: 180px;
-    height: 250px;
-    max-width: 100%;
+    width: 280px;
+    height: 420px; /* main fix for overlap */
   }
 
   .flip-card img {
-    width: 170px;
-    height: 220px;
+    width: 200px;
+    height: 260px;
   }
 
   .birthday-message {
-    font-size: 0.9em;
+    font-size: 0.95em;
+    line-height: 1.55;
+    margin-bottom: 45px; /* ensures button stays separated */
   }
 
   #flipBtn,
   .back-btn {
-    width: 80%;
-    margin: 10px auto;
-    display: block;
+    width: auto;
+    padding: 10px 20px;
+    margin-top: 10px;
   }
 }
 
